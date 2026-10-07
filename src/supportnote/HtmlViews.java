@@ -35,6 +35,18 @@ public class HtmlViews {
         return out.toString();
     }
 
+    private static String priorityOptions(String selected) {
+        // 意図: enumから選択肢を作り、値と表示名の二重管理を避ける。
+        // 意図: 入力エラーで画面に戻った場合も、選ばれた優先度を保持する。
+        StringBuilder out = new StringBuilder();
+        for (Ticket.Priority priority : Ticket.Priority.values()) {
+            out.append("<option value=\"").append(priority.name()).append("\"")
+                .append(priority.name().equals(selected) ? " selected" : "")
+                .append(">").append(escape(priority.label)).append("</option>");
+        }
+        return out.toString();
+    }
+
     private static String notice(String error) {
         return error.isEmpty() ? "" : "<div class=\"notice error\" role=\"alert\">" + escape(error) + "</div>";
     }
@@ -91,22 +103,15 @@ public class HtmlViews {
             <section class="panel form-panel"><form method="post" action="/create">%s
             <label>件名 <span class="required">必須</span><input name="title" maxlength="80" required value="%s" placeholder="例：社内Wi-Fiに接続できない"></label>
             <label>分類 <span class="required">必須</span><select name="category" required>%s</select></label>
-            <!-- 意図: 登録時に優先度を選べるように -->
             <label>優先度
-                <select name="priority" required>
-                    <option value="LOW" %s>低</option>
-                    <option value="NORMAL" %s>中</option>
-                    <option value="HIGH" %s>高</option>
-                </select>
+                <select name="priority" required>%s</select>
             </label>
             <label>内容 <span class="required">必須</span><textarea name="description" maxlength="2000" required rows="7" placeholder="発生した状況や、すでに試したことを書いてください。">%s</textarea></label>
             <p class="hint">件名80文字・内容2,000文字まで。未対応として登録します。</p>
             <div class="form-actions"><button>問い合わせを登録</button><a href="/">キャンセル</a></div>
             </form></section>
             """.formatted(notice(error), token(csrf), escape(values.getOrDefault("title", "")), options,
-                "LOW".equals(values.getOrDefault("priority", "NORMAL")) ? " selected" : "",
-                "NORMAL".equals(values.getOrDefault("priority", "NORMAL")) ? " selected" : "",
-                "HIGH".equals(values.getOrDefault("priority", "NORMAL")) ? " selected" : "",
+                priorityOptions(values.getOrDefault("priority", "NORMAL")),
                 escape(values.getOrDefault("description", ""))));
     }
 

@@ -30,7 +30,7 @@ public class TicketService {
     }
 
     public synchronized Ticket create(String title, String category, String description, String priority) throws IOException {
-       Ticket.Priority selectedPriority;
+        Ticket.Priority selectedPriority;
         try { selectedPriority = Ticket.Priority.valueOf(priority); }
         catch (IllegalArgumentException e) { throw new IllegalArgumentException("優先度の値が不正です。"); }
         title = checkedText(title, "件名", 80, true);
@@ -40,18 +40,19 @@ public class TicketService {
         long id = 1;
         for (Ticket t : next) id = Math.max(id, Math.addExact(t.id, 1));
         LocalDateTime now = LocalDateTime.now();
-        // 意図: 新規登録時は優先度を「通常」に設定する。
+        // 意図: 新規登録は必ず未対応から始め、優先度は選ばれた値を設定する。
         Ticket ticket = new Ticket(id, title, category, description, Ticket.Status.OPEN, selectedPriority, "", now, now);
         next.add(ticket);
         repository.saveAll(next);
         return ticket;
     }
-    // 意図: 優先度を指定しない呼び出しは中
+
+    // 意図: 優先度を指定しない呼び出しでは「中」を使う。
     public Ticket create(String title, String category, String description) throws IOException {
         return create(title, category, description, "NORMAL");
     }
 
-    public synchronized void update(long id, String status, String resolution ) throws IOException {
+    public synchronized void update(long id, String status, String resolution) throws IOException {
         Ticket.Status selected = parseStatus(status);
         resolution = checkedText(resolution, "対応メモ", 2000, selected == Ticket.Status.DONE);
         // 意図: 完了の根拠を残すため、完了にするときだけ対応メモを必須にする。

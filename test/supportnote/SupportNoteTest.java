@@ -38,29 +38,29 @@ public class SupportNoteTest {
             Ticket second = reopened.create("2件目", "その他", "説明");
             expect(second.id > ticket.id, "再起動後もIDが増える");
             // 意図: 指定しない場合は「中」、指定した場合はその優先度で登録されることを確認する。
-expect(second.priority == Ticket.Priority.NORMAL, "指定なしは中");
+            expect(second.priority == Ticket.Priority.NORMAL, "指定なしは中");
 
-Ticket high = reopened.create("高の確認", "その他", "確認用", "HIGH");
-Ticket low = reopened.create("低の確認", "その他", "確認用", "LOW");
-expect(high.priority == Ticket.Priority.HIGH, "高で登録");
-expect(low.priority == Ticket.Priority.LOW, "低で登録");
+            Ticket high = reopened.create("高の確認", "その他", "確認用", "HIGH");
+            Ticket low = reopened.create("低の確認", "その他", "確認用", "LOW");
+            expect(high.priority == Ticket.Priority.HIGH, "高で登録");
+            expect(low.priority == Ticket.Priority.LOW, "低で登録");
 
-// 意図: 選択肢にない優先度を保存しないことを確認する。
-reject(() -> reopened.create("不正値", "その他", "確認用", "INVALID"),
-    "不正な優先度を拒否");
+            // 意図: 選択肢にない優先度を保存しないことを確認する。
+            reject(() -> reopened.create("不正値", "その他", "確認用", "INVALID"),
+                "不正な優先度を拒否");
 
-// 意図: 対応状況を変えても、優先度が変わらないことを確認する。
-reopened.update(high.id, "WORKING", "確認中");
-expect(reopened.find(high.id).priority == Ticket.Priority.HIGH,
-    "状態変更後も高を保持");
+            // 意図: 対応状況を変えても、優先度が変わらないことを確認する。
+            reopened.update(high.id, "WORKING", "確認中");
+            expect(reopened.find(high.id).priority == Ticket.Priority.HIGH,
+                "状態変更後も高を保持");
 
-// 意図: ファイルから読み直しても、低・高が復元されることを確認する。
-TicketService priorityReloaded =
-    new TicketService(new TicketRepository(file));
-expect(priorityReloaded.find(high.id).priority == Ticket.Priority.HIGH,
-    "再読込後も高を保持");
-expect(priorityReloaded.find(low.id).priority == Ticket.Priority.LOW,
-    "再読込後も低を保持");
+            // 意図: ファイルから読み直しても、低・高が復元されることを確認する。
+            TicketService priorityReloaded =
+                new TicketService(new TicketRepository(file));
+            expect(priorityReloaded.find(high.id).priority == Ticket.Priority.HIGH,
+                "再読込後も高を保持");
+            expect(priorityReloaded.find(low.id).priority == Ticket.Priority.LOW,
+                "再読込後も低を保持");
             List<Ticket> copy = repository.findAll();
             copy.clear();
             expect(!repository.findAll().isEmpty(), "一覧のコピーを変更しても内部データは変わらない");
